@@ -63,7 +63,6 @@ with open("main.css") as f:
 with st.spinner("Laster inn..."):
     ### Import dataframes
     df_hourly_data, df_grid_stations, df_buildings = import_dfs()
-    st.write(df_hourly_data, df_grid_stations, df_buildings)
 
     ### Filter grid stations
     idx_drop_list = []
