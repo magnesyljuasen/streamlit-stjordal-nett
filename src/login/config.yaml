@@ -1,0 +1,9 @@
+credentials:
+  usernames:
+    asplanviak:
+      name: Asplan Viak
+      password: $2b$12$mkQ.oNbydAeghlz/VcYliOYLbRzXzFkaizOIuwe7M7BqkD5jju2eG # To be replaced with hashed password
+cookie:
+  expiry_days: 60
+  key: some_signature_key
+  name: some_cookie_name
