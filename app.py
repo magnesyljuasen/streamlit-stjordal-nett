@@ -42,6 +42,8 @@ def import_dfs():
     df_hourly_data = pd.read_excel("src/AMS Stjørdal.xlsx", sheet_name="Timedata")
     df_grid_stations = pd.read_excel("src/AMS Stjørdal.xlsx", sheet_name="Nettstasjon")
     df_buildings = pd.read_excel("src/AMS Stjørdal.xlsx", sheet_name="Målepunkt")
+    df_ns = pd.read_excel("src/AMS Stjørdal.xlsx", sheet_name="NS")
+    df_buildings = pd.merge(df_buildings, df_ns, on='Driftsmerking', how='inner')
     return df_hourly_data, df_grid_stations, df_buildings
 
 ### Streamlit settings
@@ -100,23 +102,22 @@ with st.spinner("Laster inn..."):
     folium.TileLayer("CartoDB positron", name="Bakgrunnskart").add_to(m)
         
     gdf = gpd.GeoDataFrame(df_buildings, geometry=gpd.points_from_xy(df_buildings['Geografisk øst (grader)'], df_buildings['Geografisk nord (grader)']))
-    unique_values = list(gdf['Driftsmerking'].unique())
-    number_of_colors = len(unique_values)
-    colormap = LinearColormap(['#2c7bb6', '#abd9e9', '#ffffbf', '#fdae61', '#d7191c'], vmin=0, vmax=number_of_colors, max_labels=number_of_colors)
-    colors = [colormap(x) for x in range(number_of_colors)]
-    unique_values_colors = dict(zip([str(x) for x in unique_values], colors))
+    colormap = LinearColormap(['green', 'yellow'], vmin=0, vmax=1)
 
     for idx, row in gdf.iterrows():
         marker = str(row['Driftsmerking'])
-        selected_color = unique_values_colors[marker]
+        percentage = row['%-belastning per i dag']
+        color = colormap(percentage)
+        if row['Installert trafoytelse'] == 0:
+            color = "gray"
         folium.CircleMarker(
             location=[row['geometry'].y, row['geometry'].x],
             radius=10,
             color='transparent',
             fill=True,
-            fill_color=selected_color,
+            fill_color=color,
             fill_opacity=0.7,
-            tooltip=f"Målepunkt: {row['Målepunkt']}, Driftsmerking: {row['Driftsmerking']}"
+            tooltip=f"Maks belastning: {int(row['Maks belastning [kWh/h]'])} kW<br>Installert trafoytelse {row['Installert trafoytelse']} kW"
             ).add_to(m)
 
     st_data = st_folium(m, height=400, use_container_width=True, returned_objects=["last_object_clicked"])
@@ -171,7 +172,7 @@ with st.spinner("Laster inn..."):
 
 
     ### Set station name
-    st.write(f"Du har valgt: **{grid_station_name} ({grid_station_id})**")
+    #st.write(f"Du har valgt: **{grid_station_name}**")
 
 
     ### Plot using plotly
